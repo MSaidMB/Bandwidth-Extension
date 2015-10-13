@@ -1,0 +1,10 @@
+function [ Y ] = lsf( X, p )
+%CEPSTRUM Summary of this function goes here
+%   Detailed explanation goes here
+    w = hann(length(X));
+    w=w';
+    Xhan = X.*w;                   % Hanning
+    a = lpc(Xhan, p);
+   
+    Y = poly2lsf(a)';   % Complex Cepstral Analysis  
+end
