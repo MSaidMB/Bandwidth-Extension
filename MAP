@@ -1,0 +1,37 @@
+function [ y ] = MAPfull( x, D )
+% Funcion encargada de estimar la envolvente espectral del tramo de señal
+% en banda ancha, dada una muestra enbanda estrecha haciendo uso de GMM (Gaussian Mixture Model). 
+% Sestimará a través de un decisor MAP (Maximun a priori estimation)
+
+    load MiGMM         % Se carga el modelo basado en mezclas de Gaussianas
+    M = 512;            % Número de gaussianas
+    w = mix.priors;     % Pesos del GMM
+    u = mix.centres;    % Vectores LSF media
+    C = mix.covars;     % Vectores diagonales covarianzas
+    g = zeros(1, 512);  % Probabilidades condicionadas
+    
+    g = [];
+    % Se calculan las probabilidades condicionadas
+    for i=1:M
+        K = C(:, :, i);        
+        number = (x-u(i,:))*inv(K)*(x-u(i, :))';
+        g = [g (1/((2*pi)^(D/2))*(abs(K))^0.5)*exp(-0.5*number)];
+    end    
+    
+    
+    % Se estima el argumento maximo
+    maximo = w(1)*g(1);
+    pos_max = 1;
+    for i=2:M
+        aux = w(i)*g(i);
+        if(aux>maximo)
+            maximo = aux;
+            pos_max = i;
+        end
+    end
+    
+    % Se obtiene la salida
+    y = u(pos_max, :);
+        
+    
+end
