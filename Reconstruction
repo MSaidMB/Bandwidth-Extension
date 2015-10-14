@@ -1,0 +1,25 @@
+function [ Y ] = reconstruccion( X )
+%RECONSTRUCCION Summary of this function goes here
+%   Detailed explanation goes here
+    [sample col] = size(X);
+
+    Y = [];
+    for i =1:sample
+        if i==1
+            aux1 = X(i,:);
+            aux2 = zeros(1, 160);
+            aux2 = [aux2 X(i+1, 1:160)];
+            vector = aux1 + aux2;
+        elseif i==sample
+            vector = X(i, 161:320);
+        else
+            aux1 = X(i, 161:320);
+            aux2 = X(i+1, 1:160);
+            vector = aux1 + aux2;
+        end
+            
+        
+        Y = [Y vector];
+    end
+
+end
