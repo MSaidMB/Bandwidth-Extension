@@ -1,0 +1,73 @@
+function [ Y ] = bwe( X, fs )
+
+    %%%%%% BLOQUE 0: INTERPOLACION %%%%%%
+    senial = resample(X, 2, 1);
+    fs = fs*2;
+    Xinterpolada = senial;
+    p=14;
+
+    
+    %%%%%% Informacion---> Los bloques 1 y; 2 y 3 se ejecutarán paralelamente
+    %%%%%% BLOQUE 1: ANALISIS/ESTIMACION %%%%%%
+    
+    % 1) Hallar los coeficientes LPC de reflexion --> Analisis
+    w = hann(length(X));
+    w=w';
+    Xhan = X.*w;                   % Hanning 
+    x_lpc = lpc(Xhan, p);
+    x_lsf = poly2lsf(x_lpc)';  
+    
+    % 2)  --> Estimación de la envolvente 
+    a_lsf = MAPfull(x_lsf, p);
+    a_lp = lsf2poly(a_lsf);
+
+
+    %%%%%% BLOQUE 2: EXTENSION %%%%
+
+    %%% A partir de la trama en banda estrecha interpolada se obtiene su excitacion
+    
+    b_lp = 1;
+    a_ori = lpc(Xinterpolada, p);
+    ext_nb = filter(a_ori, b_lp, Xinterpolada);
+
+
+    
+    %%% Se genera la moduladora
+    t = 1:320;
+    freq = 2*pi*4000/16000;
+    mod = 2*cos(freq*t);
+    %%% Se extiende la excitacion
+    ext_todo = mod.*ext_nb;
+    %%% Se filtra paso alta
+    [b_high,a_high] = butter(9,0.5,'high');
+    ext_eb = filter(b_high,a_high,ext_todo);
+    
+    
+    %%% Se suman ambas excitaciones y se obtiene la extendida
+    ext_wb = ext_nb + ext_eb;
+
+%     %%%%% BLOQUE 3: SINTESIS %%%%
+% 
+    s_wb = filter(b_lp, a_lp, ext_wb);
+
+    
+
+%     %%%%% BLOQUE 4: FILTRO PASO ALTA %%%%
+    s_eb = filter(b_high,a_high,s_wb);    
+    
+    
+% 
+%     %%%%% Bloque 5: Superposición parte alta y baja del espectro %%%
+    s_nb = Xinterpolada;
+        
+    Y = s_nb + s_eb;
+    
+    
+    %%%%%SALIDA%%%%%
+    han = hann(length(Y));
+    han=han';
+    Y = Y.*han;
+    
+   
+
+end
