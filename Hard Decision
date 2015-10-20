@@ -1,0 +1,21 @@
+function [ output ] = hard( ca, cb )
+%HARD: Se obtienen los coeficientes que modelan el tramo de la señal en
+%banda ancha a partir de comparacion hard entre el tramo en banda estrecha
+%y el diccionario de coeficientes en banda ancha. Se utiliza el error
+%cuadratico medio.
+    [tam col] = size(ca);
+    for i=1:tam
+        aux = sum((ca(i, 1:col/2)-cb).^2)/(col/2);
+        if i==1
+            min = aux;
+            pos = 1;
+        elseif aux <= min
+            min = aux;
+            pos = i;
+        end
+    end
+    
+    output = ca(pos, (col/2+1):col);
+    
+end
+
